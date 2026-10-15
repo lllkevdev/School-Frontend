@@ -1,15 +1,20 @@
-
-
-function Alumno({id, nombre, apellido, onSaludar}) {
+function Alumno({ onEliminar, onEditar }) {
     return (
-    <div>
-    <p>
-        {id} {nombre} {apellido}
-    </p>
-    <button onClick={() => onSaludar(nombre)}>
-        Saludar
-    </button>
-    </div>
+        <div className="acciones-alumno-botones">
+            <button
+                className="btn-editar"
+                onClick={onEditar}
+            >
+                Editar
+            </button>
+
+        <button
+            className="btn-eliminar"
+            onClick={onEliminar}
+        >
+            Eliminar
+        </button>
+        </div>
     )
 }
 
