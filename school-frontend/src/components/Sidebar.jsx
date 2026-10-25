@@ -2,9 +2,9 @@ function Sidebar({ seccionActiva, onCambiarSeccion }) {
     const secciones = [
         { id: "inicio", nombre: "Inicio" },
         { id: "alumnos", nombre: "Alumnos" },
-        { id: "materias", nombre: "Materias" },
+        { id: "cursos", nombre: "Cursos" },
+        { id: "invitaciones", nombre: "Invitaciones" },
         { id: "calificaciones", nombre: "Calificaciones" },
-        { id: "usuarios", nombre: "Usuarios" },
     ]
 
     return (

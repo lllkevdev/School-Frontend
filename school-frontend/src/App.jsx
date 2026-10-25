@@ -2,9 +2,13 @@ import { useState, useCallback, useEffect } from "react"
 
 import { obtenerPerfil } from "./authService"
 import useAlumnos from "./hooks/useAlumnos"
+import useCursos from "./hooks/useCursos"
+import useInvitaciones from "./hooks/useInvitaciones"
 import Login from "./components/Login"
 import Alumnos from "./components/Alumnos"
 import FormularioAlumno from "./components/FormularioAlumno"
+import Cursos from "./components/Cursos"
+import Invitaciones from "./components/Invitaciones"
 import Sidebar from "./components/Sidebar"
 import Header from "./components/Header"
 
@@ -105,25 +109,47 @@ function App() {
 
   const {
     alumnos,
-    errorCarga,
+    errorCarga: errorCargaAlumnos,
     cargandoAlumnos,
     agregarAlumno,
-    cargando,
-    error,
+    cargando: creandoAlumno,
+    error: errorAlumno,
     desactivarAlumno,
     cargandoDesactivacion,
     errorDesactivacion,
     informarError
   } = useAlumnos(token, manejarSesionExpirada, esAdmin)
 
+  const {
+    cursos,
+    cargandoCursos,
+    errorCarga: errorCargaCursos,
+    crearCurso,
+    creando: creandoCurso,
+    errorCrear: errorCrearCurso
+  } = useCursos(token, manejarSesionExpirada, esAdmin)
+
+  const {
+    invitaciones,
+    cargandoInvitaciones,
+    errorCarga: errorCargaInvitaciones,
+    crearInvitacion,
+    creando: creandoInvitacion,
+    errorCrear: errorCrearInvitacion,
+    creada: invitacionCreada,
+    revocarInvitacion,
+    revocandoId,
+    errorRevocar
+  } = useInvitaciones(token, manejarSesionExpirada, esAdmin)
+
   const [seccionActiva, setSeccionActiva] = useState("alumnos")
 
   const titulosSecciones = {
     inicio: "Inicio",
     alumnos: "Alumnos",
-    materias: "Materias",
+    cursos: "Cursos",
+    invitaciones: "Invitaciones",
     calificaciones: "Calificaciones",
-    usuarios: "Usuarios",
   }
 
   const [subseccionAlumnos, setSubseccionAlumnos] = useState("listado")
@@ -214,18 +240,13 @@ return (
           onCerrarSesion={() => cerrarSesion()}
         />
 
-        {seccionActiva !== "alumnos" ? (
-          <section className="panel-informativo">
-            <h2>{titulosSecciones[seccionActiva]}</h2>
-            <p>Este módulo todavía no está conectado.</p>
-          </section>
-        ) : (
+        {seccionActiva === "alumnos" && (
           <>
             {cargandoAlumnos && <p>Cargando alumnos...</p>}
 
-            {errorCarga && (
-              <p style={{ color: "red" }}>
-                {errorCarga}
+            {errorCargaAlumnos && (
+              <p className="mensaje-error" role="alert">
+                {errorCargaAlumnos}
               </p>
             )}
 
@@ -273,11 +294,48 @@ return (
                     setFechaNacimiento("")
                   }
                 }}
-                cargando={cargando}
-                error={error}
+                cargando={creandoAlumno}
+                error={errorAlumno}
               />
             )}
           </>
+        )}
+
+        {seccionActiva === "cursos" && (
+          <Cursos
+            cursos={cursos}
+            cargando={cargandoCursos}
+            errorCarga={errorCargaCursos}
+            onCrear={crearCurso}
+            creando={creandoCurso}
+            errorCrear={errorCrearCurso}
+          />
+        )}
+
+        {seccionActiva === "invitaciones" && (
+          <Invitaciones
+            alumnos={alumnos}
+            cursos={cursos}
+            cargandoAlumnos={cargandoAlumnos}
+            errorAlumnos={errorCargaAlumnos}
+            invitaciones={invitaciones}
+            cargando={cargandoInvitaciones}
+            errorCarga={errorCargaInvitaciones}
+            onCrear={crearInvitacion}
+            creando={creandoInvitacion}
+            errorCrear={errorCrearInvitacion}
+            creada={invitacionCreada}
+            onRevocar={revocarInvitacion}
+            revocandoId={revocandoId}
+            errorRevocar={errorRevocar}
+          />
+        )}
+
+        {!["alumnos", "cursos", "invitaciones"].includes(seccionActiva) && (
+          <section className="panel-informativo">
+            <h2>{titulosSecciones[seccionActiva]}</h2>
+            <p>Este módulo todavía no está conectado.</p>
+          </section>
         )}
     </main>
   </div>

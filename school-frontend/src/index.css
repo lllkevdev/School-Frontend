@@ -411,10 +411,18 @@ button:hover {
   color: var(--text-h);
 }
 
-.dashboard-main form input {
+.dashboard-main form input,
+.dashboard-main form select {
   width: 100%;
   padding: 10px 12px;
   box-sizing: border-box;
+}
+
+.dashboard-main form label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  margin-bottom: -4px;
 }
 
 .dashboard-main form button {
@@ -431,7 +439,8 @@ button:hover {
 
 
 /* Campos de los formularios */
-.dashboard-main form input {
+.dashboard-main form input,
+.dashboard-main form select {
   width: 100%;
   padding: 11px 12px;
   box-sizing: border-box;
@@ -445,7 +454,8 @@ button:hover {
 }
 
 /* Cuando el usuario selecciona un campo */
-.dashboard-main form input:focus {
+.dashboard-main form input:focus,
+.dashboard-main form select:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-bg);
@@ -458,8 +468,34 @@ button:hover {
 }
 
 /* Navegación por teclado */
-.dashboard-main form input:focus-visible {
+.dashboard-main form input:focus-visible,
+.dashboard-main form select:focus-visible {
   outline: none;
+}
+
+.dashboard-main form select:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.dashboard-main form .texto-ayuda {
+  margin-top: -4px;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text);
+  opacity: 0.85;
+}
+
+.dashboard-main form.formulario-invitacion {
+  max-width: 560px;
+}
+
+.formulario-invitacion > p:first-of-type {
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text);
 }
 
 
@@ -475,8 +511,15 @@ button:hover {
 
 
 /* Sección y tabla de alumnos */
-.alumnos-seccion {
+.alumnos-seccion,
+.cursos-seccion,
+.invitaciones-seccion {
   margin-top: 24px;
+}
+
+.cursos-seccion > h2,
+.invitaciones-seccion > h2 {
+  margin-top: 32px;
 }
 
 .tabla-contenedor {
@@ -524,7 +567,8 @@ button:hover {
 }
 
 
-.alumno-estado {
+.alumno-estado,
+.invitacion-estado {
   display: inline-flex;
   align-items: center;
   padding: 5px 10px;
@@ -553,6 +597,136 @@ button:hover {
 
 [data-tema="oscuro"] .alumno-estado.inactivo {
   color: #fca5a5;
+}
+
+.invitacion-estado.pendiente {
+  color: #a16207;
+  background: rgba(234, 179, 8, 0.12);
+  border-color: rgba(234, 179, 8, 0.38);
+}
+
+.invitacion-estado.aceptada {
+  color: #15803d;
+  background: rgba(22, 163, 74, 0.10);
+  border-color: rgba(22, 163, 74, 0.35);
+}
+
+.invitacion-estado.revocada,
+.invitacion-estado.vencida {
+  color: #b91c1c;
+  background: rgba(220, 38, 38, 0.10);
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+[data-tema="oscuro"] .invitacion-estado.pendiente {
+  color: #fde68a;
+}
+
+[data-tema="oscuro"] .invitacion-estado.aceptada {
+  color: #86efac;
+}
+
+[data-tema="oscuro"] .invitacion-estado.revocada,
+[data-tema="oscuro"] .invitacion-estado.vencida {
+  color: #fca5a5;
+}
+
+.tabla-alumnos .btn-revocar {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: transparent;
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.4);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.tabla-alumnos .btn-revocar:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.1);
+  border-color: #dc2626;
+  transform: translateY(-1px);
+}
+
+.tabla-alumnos .btn-revocar:disabled {
+  opacity: 0.55;
+  color: var(--text);
+  border-color: var(--border);
+  cursor: not-allowed;
+}
+
+.tabla-alumnos .btn-revocar:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.invitacion-creada {
+  max-width: 560px;
+  margin-top: 24px;
+  padding: 24px;
+  box-sizing: border-box;
+  background: var(--code-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.invitacion-creada > p {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.enlace-invitacion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.enlace-invitacion input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 12px;
+  background: var(--bg);
+  color: var(--text-h);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.enlace-invitacion input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.enlace-invitacion button {
+  flex-shrink: 0;
+  height: 42px;
+  padding: 0 16px;
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.enlace-invitacion button:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.enlace-invitacion button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 
@@ -719,6 +893,14 @@ button:hover {
   background: transparent;
 }
 
+.login-tarjeta label {
+  margin-bottom: -8px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
 .login-tarjeta h2 {
   margin: 0;
   text-align: center;
@@ -800,11 +982,51 @@ button:hover {
   transform: translateY(-2px);
 }
 
+.login-tarjeta button.login-enlace {
+  width: auto;
+  align-self: center;
+  padding: 4px 0;
+  background: transparent;
+  color: var(--text);
+  border: none;
+  border-radius: 0;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.login-tarjeta button.login-enlace:hover:not(:disabled) {
+  background: transparent;
+  color: var(--accent);
+  border: none;
+  transform: none;
+}
+
+.login-alternativas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  margin-top: 2px;
+}
+
+.login-aviso {
+  padding: 10px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+}
+
 
 .login-avatar {
   width: 88px;
   height: 88px;
-  margin: 0 auto 12px;
+  margin: 0 auto 24px;
   border-radius: 50%;
   box-shadow: 0 0 24px rgba(126, 34, 206, 0.25);
   overflow: hidden;
@@ -917,6 +1139,15 @@ button:hover {
 .modal-contenido {
   max-height: calc(100vh - 24px);
   padding: 18px;
+}
+
+.enlace-invitacion {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.enlace-invitacion button {
+  width: 100%;
 }
 }
 
