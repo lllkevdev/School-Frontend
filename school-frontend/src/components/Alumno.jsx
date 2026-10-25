@@ -1,19 +1,14 @@
-function Alumno({ onEliminar, onEditar }) {
+function Alumno({ activo, onDesactivar }) {
     return (
         <div className="acciones-alumno-botones">
             <button
-                className="btn-editar"
-                onClick={onEditar}
+                type="button"
+                className="btn-desactivar"
+                onClick={onDesactivar}
+                disabled={!activo}
             >
-                Editar
+                {activo ? "Desactivar" : "Inactivo"}
             </button>
-
-        <button
-            className="btn-eliminar"
-            onClick={onEliminar}
-        >
-            Eliminar
-        </button>
         </div>
     )
 }

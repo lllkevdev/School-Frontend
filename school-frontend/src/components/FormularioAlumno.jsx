@@ -1,36 +1,63 @@
+function obtenerFechaMaxima() {
+    const hoy = new Date()
+    const anio = hoy.getFullYear()
+    const mes = String(hoy.getMonth() + 1).padStart(2, "0")
+    const dia = String(hoy.getDate()).padStart(2, "0")
+
+    return `${anio}-${mes}-${dia}`
+}
+
 function FormularioAlumno ({
-    modo,
     nombre,
     setNombre,
     apellido,
     setApellido,
-    edad,
-    setEdad,
+    documentoIdentidad,
+    setDocumentoIdentidad,
+    fechaNacimiento,
+    setFechaNacimiento,
     onGuardar,
     cargando,
     error,
-    informarError,
-    onCancelar
+    informarError
 }) {
     return (
-        <form onSubmit={(e) => {
-            e.preventDefault()
-            informarError("")
+        <form
+            className="formulario-alumno formulario-crear"
 
-            if (nombre.trim() === "" || apellido.trim() === "") {
-                informarError("El nombre y apellido no pueden estar vacíos")
-                return
-            }
+            onSubmit={(e) => {
+                e.preventDefault()
+                informarError("")
 
-            onGuardar()
-        }}>
-            <h2>
-                {modo === "crear" ? "Crear alumno" : "Editar alumno"}
-            </h2>
+                if (nombre.trim() === "" || apellido.trim() === "") {
+                    informarError("El nombre y apellido no pueden estar vacíos")
+                    return
+                }
+
+                if (documentoIdentidad.trim().length < 5) {
+                    informarError("El documento debe tener al menos 5 caracteres")
+                    return
+                }
+
+                if (fechaNacimiento === "") {
+                    informarError("La fecha de nacimiento es obligatoria")
+                    return
+                }
+
+                if (fechaNacimiento > obtenerFechaMaxima()) {
+                    informarError("La fecha de nacimiento no puede ser futura")
+                    return
+                }
+
+                onGuardar()
+        }   }>
+            <h2>Crear alumno</h2>
 
             <p>Nombre</p>
             <input
                 required
+                minLength={2}
+                maxLength={100}
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
             />
@@ -38,35 +65,38 @@ function FormularioAlumno ({
             <p>Apellido</p>
             <input
                 required
+                minLength={2}
+                maxLength={100}
                 value={apellido}
                 onChange={(e) => setApellido(e.target.value)}
             />
 
-            <p>Edad</p>
+            <p>Documento de identidad</p>
             <input
-                type="number"
-                value={edad}
-                min={1}
-                max={99}
-                onChange={(e) => setEdad(e.target.value)}
+                required
+                minLength={5}
+                maxLength={20}
+                value={documentoIdentidad}
+                onChange={(e) => setDocumentoIdentidad(e.target.value)}
+            />
+
+            <p>Fecha de nacimiento</p>
+            <input
+                required
+                type="date"
+                max={obtenerFechaMaxima()}
+                value={fechaNacimiento}
+                onChange={(e) => setFechaNacimiento(e.target.value)}
             />
             <div className="acciones-formulario">
                 <button disabled={cargando} type="submit">
-                    {cargando 
-                        ? "Guardando..." 
-                        : modo === "crear"
-                            ? "Agregar alumno"
-                            : "Guardar cambios"}
+                    {cargando
+                        ? "Guardando..."
+                        : "Agregar alumno"}
                 </button>
-            
-                {modo === "editar" && (
-                    <button type="button" onClick={onCancelar}>
-                        Cancelar
-                    </button>
-                )}
             </div>
             {error && <p style={{ color: "red" }}>{error}</p>}
-        </form> 
+        </form>
     )
 }
 

@@ -1,0 +1,13 @@
+{
+  "name": "school-fullstack",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently -k -n backend,frontend -c blue,green \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:backend": "cd ../school-api && .venv\\Scripts\\python.exe -m uvicorn app.main:app --reload",
+    "dev:frontend": "npm --prefix school-frontend run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

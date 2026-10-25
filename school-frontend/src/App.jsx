@@ -1,12 +1,12 @@
 import { useState, useCallback, useEffect } from "react"
 
+import { obtenerPerfil } from "./authService"
 import useAlumnos from "./hooks/useAlumnos"
-import Login from "./components/login"
+import Login from "./components/Login"
 import Alumnos from "./components/Alumnos"
 import FormularioAlumno from "./components/FormularioAlumno"
 import Sidebar from "./components/Sidebar"
 import Header from "./components/Header"
-import ModalEdicionAlumno from "./components/ModalEdicionAlumno"
 
 function obtenerTemaInicial() {
   const temaGuardado = localStorage.getItem("tema")
@@ -26,12 +26,15 @@ function App() {
 
   const [tema, setTema] = useState(obtenerTemaInicial)
 
+  const [mensajeSesion, setMensajeSesion] = useState("")
+
+  const [perfil, setPerfil] = useState(null)
+  const [errorPerfil, setErrorPerfil] = useState("")
+
   useEffect(() => {
     localStorage.setItem("tema", tema)
     document.documentElement.setAttribute("data-tema", tema)
   }, [tema])
-
-  const [mensajeSesion, setMensajeSesion] = useState("")
 
   function manejarLogin(nuevoToken) {
     localStorage.setItem("token", nuevoToken)
@@ -41,6 +44,8 @@ function App() {
   const cerrarSesion = useCallback((sesionExpirada = false) => {
     localStorage.removeItem("token")
     setToken(null)
+    setPerfil(null)
+    setErrorPerfil("")
 
     if (sesionExpirada) {
       setMensajeSesion (
@@ -55,20 +60,48 @@ function App() {
     cerrarSesion(true)
   }, [cerrarSesion])
 
-  function prepararEdicion(id) {
-    const alumnoEncontrado = alumnos.find(
-      (alumno) => alumno.id === id
-    )
-
-    if (!alumnoEncontrado) {
+  useEffect(() => {
+    if (!token) {
       return
     }
 
-    setIdEdicion(alumnoEncontrado.id)
-    setNombreEdicion(alumnoEncontrado.nombre)
-    setApellidoEdicion(alumnoEncontrado.apellido)
-    setEdadEdicion(String(alumnoEncontrado.edad))
-  }
+    let cancelado = false
+
+    async function cargarPerfil() {
+      setErrorPerfil("")
+
+      try {
+        const datos = await obtenerPerfil(token)
+
+        if (!cancelado) {
+          setPerfil(datos)
+        }
+      } catch (error) {
+        if (cancelado) {
+          return
+        }
+
+        if (error.status === 401) {
+          cerrarSesion(true)
+          return
+        }
+
+        setErrorPerfil(
+          error.status
+            ? error.message
+            : "No se pudo conectar con el servidor"
+        )
+      }
+    }
+
+    cargarPerfil()
+
+    return () => {
+      cancelado = true
+    }
+  }, [token, cerrarSesion])
+
+  const esAdmin = perfil?.rol === "admin"
 
   const {
     alumnos,
@@ -77,14 +110,11 @@ function App() {
     agregarAlumno,
     cargando,
     error,
-    guardarEdicion,
-    cargandoEdicion,
-    errorEdicion,
-    eliminarAlumno,
-    cargandoEliminacion,
-    errorEliminacion,
+    desactivarAlumno,
+    cargandoDesactivacion,
+    errorDesactivacion,
     informarError
-  } = useAlumnos(token, manejarSesionExpirada)
+  } = useAlumnos(token, manejarSesionExpirada, esAdmin)
 
   const [seccionActiva, setSeccionActiva] = useState("alumnos")
 
@@ -102,20 +132,8 @@ function App() {
 
   const [nombre, setNombre] = useState("")
   const [apellido, setApellido] = useState("")
-  const [edad, setEdad] = useState("")
-
-  const [idEdicion, setIdEdicion] = useState(null)
-
-  const [nombreEdicion, setNombreEdicion] = useState("")
-  const [apellidoEdicion, setApellidoEdicion] = useState("")
-  const [edadEdicion, setEdadEdicion] = useState("")
-
-  const cerrarModalEdicion = () => {
-    setIdEdicion(null)
-    setNombreEdicion("")
-    setApellidoEdicion("")
-    setEdadEdicion("")
-  }
+  const [documentoIdentidad, setDocumentoIdentidad] = useState("")
+  const [fechaNacimiento, setFechaNacimiento] = useState("")
 
   if (!token) {
     return (
@@ -130,6 +148,50 @@ function App() {
         )}
 
         <Login onLogin={manejarLogin}/>
+      </div>
+    )
+  }
+
+  if (!perfil) {
+    return (
+      <div data-tema={tema} className="login-pantalla">
+        <div className="login-tarjeta">
+          {errorPerfil ? (
+            <>
+              <h2>No se pudo cargar la sesión</h2>
+              <p className="login-error" role="alert">
+                {errorPerfil}
+              </p>
+              <button onClick={() => cerrarSesion()}>
+                Volver al inicio
+              </button>
+            </>
+          ) : (
+            <>
+              <h2>Cargando sesión...</h2>
+              <p className="login-mensaje">
+                Verificando tus permisos.
+              </p>
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  if (!esAdmin) {
+    return (
+      <div data-tema={tema} className="login-pantalla">
+        <div className="login-tarjeta">
+          <h2>Hola, {perfil.nombre}</h2>
+          <p className="login-mensaje">
+            El panel de alumno todavía no está implementado.
+            Próximamente vas a poder consultar tus cursos y calificaciones desde acá.
+          </p>
+          <button onClick={() => cerrarSesion()}>
+            Cerrar sesión
+          </button>
+        </div>
       </div>
     )
   }
@@ -152,83 +214,71 @@ return (
           onCerrarSesion={() => cerrarSesion()}
         />
 
-        {cargandoAlumnos && <p>Cargando alumnos...</p>}
+        {seccionActiva !== "alumnos" ? (
+          <section className="panel-informativo">
+            <h2>{titulosSecciones[seccionActiva]}</h2>
+            <p>Este módulo todavía no está conectado.</p>
+          </section>
+        ) : (
+          <>
+            {cargandoAlumnos && <p>Cargando alumnos...</p>}
 
-        {errorCarga && (
-          <p style={{ color: "red" }}>
-            {errorCarga}
-          </p>
+            {errorCarga && (
+              <p style={{ color: "red" }}>
+                {errorCarga}
+              </p>
+            )}
+
+            <Alumnos
+              alumnos={alumnos}
+              subseccionAlumnos={subseccionAlumnos}
+              onCambiarSubseccion={setSubseccionAlumnos}
+              onPrepararDesactivacion={(id) => setIdConfirmacion(id)}
+              idConfirmacion={idConfirmacion}
+              errorDesactivacion={errorDesactivacion}
+              cargandoDesactivacion={cargandoDesactivacion}
+              onConfirmarDesactivacion={async (id) => {
+                const desactivado = await desactivarAlumno(id)
+
+                if (desactivado) {
+                  setIdConfirmacion(null)
+                }
+              }}
+              onCancelarDesactivacion={() => setIdConfirmacion(null)}
+            />
+
+            {subseccionAlumnos === "crear" && (
+              <FormularioAlumno
+                nombre={nombre}
+                setNombre={setNombre}
+                apellido={apellido}
+                setApellido={setApellido}
+                documentoIdentidad={documentoIdentidad}
+                setDocumentoIdentidad={setDocumentoIdentidad}
+                fechaNacimiento={fechaNacimiento}
+                setFechaNacimiento={setFechaNacimiento}
+                informarError={informarError}
+                onGuardar={async () => {
+                  const creado = await agregarAlumno(
+                    nombre,
+                    apellido,
+                    documentoIdentidad,
+                    fechaNacimiento
+                  )
+
+                  if (creado) {
+                    setNombre("")
+                    setApellido("")
+                    setDocumentoIdentidad("")
+                    setFechaNacimiento("")
+                  }
+                }}
+                cargando={cargando}
+                error={error}
+              />
+            )}
+          </>
         )}
-
-    <Alumnos
-      alumnos={alumnos}
-      subseccionAlumnos={subseccionAlumnos}
-      onCambiarSubseccion={setSubseccionAlumnos}
-      onPrepararEliminacion={(id) => setIdConfirmacion(id)}
-      onPrepararEdicion={prepararEdicion}
-      idConfirmacion={idConfirmacion}
-      errorEliminacion={errorEliminacion}
-      cargandoEliminacion={cargandoEliminacion}
-      onEliminar={async (id) => {
-        const eliminado = await eliminarAlumno(id)
-
-        if (eliminado) {
-            setIdConfirmacion(null)
-          }
-        }}
-        onCancelarEliminacion={() => setIdConfirmacion(null)}
-      />
-    
-    {subseccionAlumnos === "crear" && (
-      <FormularioAlumno
-        modo="crear"
-        nombre={nombre}
-        setNombre={setNombre}
-        apellido={apellido}
-        setApellido={setApellido}
-        edad={edad}
-        setEdad={setEdad}
-        informarError={informarError}
-        onGuardar={async () => {
-          const creado = await agregarAlumno(nombre, apellido, edad)
-
-          if (creado) {
-            setNombre("")
-            setApellido("")
-            setEdad("")
-          }
-        }}
-        cargando={cargando}
-        error={error}
-      />
-    )}
-
-
-    {idEdicion !== null && (
-      <ModalEdicionAlumno
-        nombre={nombreEdicion}
-        setNombre={setNombreEdicion}
-        apellido={apellidoEdicion}
-        edad={edadEdicion}
-        setEdad={setEdadEdicion}
-        informarError={informarError}
-        onCerrar={cerrarModalEdicion}
-        onGuardar={async () => {
-          const actualizado = await guardarEdicion(
-            idEdicion,
-            nombreEdicion,
-            apellidoEdicion,
-            edadEdicion
-          )
-
-          if (actualizado) {
-            cerrarModalEdicion()
-          }
-        }}
-        cargando={cargandoEdicion}
-        error={errorEdicion}
-      />
-    )}
     </main>
   </div>
 </div>

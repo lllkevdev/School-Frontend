@@ -1,15 +1,23 @@
+import Alumno from "./Alumno"
 
-import Alumno from "./alumno"
+function formatearFecha(fecha) {
+    if (!fecha) {
+        return "-"
+    }
+
+    const [anio, mes, dia] = fecha.split("-")
+
+    return `${dia}/${mes}/${anio}`
+}
 
 function Alumnos({
     alumnos,
-    onPrepararEliminacion,
-    onPrepararEdicion,
+    onPrepararDesactivacion,
     idConfirmacion,
-    errorEliminacion,
-    cargandoEliminacion,
-    onEliminar,
-    onCancelarEliminacion,
+    errorDesactivacion,
+    cargandoDesactivacion,
+    onConfirmarDesactivacion,
+    onCancelarDesactivacion,
     subseccionAlumnos,
     onCambiarSubseccion,
     }) {
@@ -42,55 +50,75 @@ function Alumnos({
                                 <th>ID</th>
                                 <th>Nombre</th>
                                 <th>Apellido</th>
-                                <th>Edad</th>
+                                <th>Documento</th>
+                                <th>Nacimiento</th>
+                                <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            {alumnos.map((alumno) => (
-                                <tr key={alumno.id}>
-                                <td>{alumno.id}</td>
-                                <td>{alumno.nombre}</td>
-                                <td>{alumno.apellido}</td>
-                                <td>{alumno.edad}</td>
-                                <td className="acciones-alumno">
-                                    <Alumno
-                                        onEliminar={() =>
-                                            onPrepararEliminacion(alumno.id)
-                                        }   
-                                        onEditar={() =>
-                                            onPrepararEdicion(alumno.id)
-                                        }
-                                    />
-                                </td>
+                            {alumnos.length === 0 ? (
+                                <tr>
+                                    <td colSpan={7}>
+                                        No hay alumnos para mostrar.
+                                    </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                alumnos.map((alumno) => (
+                                    <tr key={alumno.id}>
+                                    <td>{alumno.id}</td>
+                                    <td>{alumno.nombre}</td>
+                                    <td>{alumno.apellido}</td>
+                                    <td>{alumno.documento_identidad}</td>
+                                    <td>{formatearFecha(alumno.fecha_nacimiento)}</td>
+                                    <td>
+                                        <span
+                                            className={
+                                                alumno.activo
+                                                    ? "alumno-estado activo"
+                                                    : "alumno-estado inactivo"
+                                            }
+                                        >
+                                            {alumno.activo ? "Activo" : "Inactivo"}
+                                        </span>
+                                    </td>
+                                    <td className="acciones-alumno">
+                                        <Alumno
+                                            activo={alumno.activo}
+                                            onDesactivar={() =>
+                                                onPrepararDesactivacion(alumno.id)
+                                            }
+                                        />
+                                    </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
             {idConfirmacion !== null && (
                 <div className="confirmacion-eliminacion">
-                    <p>¿Seguro que querés eliminar este alumno?</p>
+                    <p>¿Seguro que querés desactivar este alumno?</p>
 
-                    {errorEliminacion && (
+                    {errorDesactivacion && (
                         <p role="alert" className="mensaje-error">
-                            {errorEliminacion}
+                            {errorDesactivacion}
                         </p>
                     )}
 
                     <button
-                        disabled={cargandoEliminacion}
-                        onClick={() => onEliminar(idConfirmacion)}
+                        disabled={cargandoDesactivacion}
+                        onClick={() => onConfirmarDesactivacion(idConfirmacion)}
                     >
-                        {cargandoEliminacion
-                            ? "Eliminando..."
+                        {cargandoDesactivacion
+                            ? "Desactivando..."
                             : "Confirmar"}
                     </button>
 
                     <button
-                        onClick={onCancelarEliminacion}
-                        disabled={cargandoEliminacion}
+                        onClick={onCancelarDesactivacion}
+                        disabled={cargandoDesactivacion}
                     >
                         Cancelar
                     </button>

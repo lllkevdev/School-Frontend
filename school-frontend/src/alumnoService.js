@@ -1,5 +1,5 @@
 
-const API_URL = "http://localhost:8000"
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000"
 
 async function procesarRespuesta(respuesta) {
     if (respuesta.status === 204) {
@@ -54,27 +54,13 @@ export async function crearAlumno(token, alumno) {
 }
 
 
-export async function actualizarAlumno(token, id, alumno) {
-    const respuesta = await fetch(`${API_URL}/alumnos/${id}`, {
+export async function desactivarAlumno(token, id) {
+    const respuesta = await fetch(`${API_URL}/alumnos/${id}/desactivar`, {
         method: "PATCH",
-        headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(alumno)
-    })
-
-    return await procesarRespuesta(respuesta)
-}
-
-
-export async function eliminarAlumno(token, id) {
-    const respuesta = await fetch(`${API_URL}/alumnos/${id}`, {
-        method: "DELETE",
         headers: {
             Authorization: `Bearer ${token}`
         }
     })
 
     return await procesarRespuesta(respuesta)
-    }
+}

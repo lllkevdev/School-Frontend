@@ -524,6 +524,37 @@ button:hover {
 }
 
 
+.alumno-estado {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+
+.alumno-estado.activo {
+  color: #15803d;
+  background: rgba(22, 163, 74, 0.10);
+  border-color: rgba(22, 163, 74, 0.35);
+}
+
+.alumno-estado.inactivo {
+  color: #b91c1c;
+  background: rgba(220, 38, 38, 0.10);
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+[data-tema="oscuro"] .alumno-estado.activo {
+  color: #86efac;
+}
+
+[data-tema="oscuro"] .alumno-estado.inactivo {
+  color: #fca5a5;
+}
+
 
 .acciones-alumno-botones {
   display: flex;
@@ -543,31 +574,24 @@ button:hover {
     transform 0.2s ease;
 }
 
-/* Editar */
-.acciones-alumno-botones .btn-editar {
-  background: var(--accent-bg);
-  color: var(--accent);
-  border-color: var(--accent-border);
-}
-
-.acciones-alumno-botones .btn-editar:hover {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
-  transform: translateY(-1px);
-}
-
-/* Eliminar */
-.acciones-alumno-botones .btn-eliminar {
+/* Desactivar */
+.acciones-alumno-botones .btn-desactivar {
   background: transparent;
   color: #dc2626;
   border-color: rgba(220, 38, 38, 0.4);
 }
 
-.acciones-alumno-botones .btn-eliminar:hover {
+.acciones-alumno-botones .btn-desactivar:hover:not(:disabled) {
   background: rgba(220, 38, 38, 0.1);
   border-color: #dc2626;
   transform: translateY(-1px);
+}
+
+.acciones-alumno-botones .btn-desactivar:disabled {
+  opacity: 0.55;
+  color: var(--text);
+  border-color: var(--border);
+  cursor: not-allowed;
 }
 
 /* Accesibilidad */
@@ -621,6 +645,29 @@ button:hover {
 .mensaje-error {
   color: #dc2626;
   margin: 8px 0;
+}
+
+
+.panel-informativo {
+  margin-top: 24px;
+  padding: 24px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.panel-informativo h2 {
+  margin-bottom: 8px;
+}
+
+
+.login-mensaje {
+  margin: 0 0 8px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
 }
 
 
