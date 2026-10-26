@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react"
 import {
     obtenerAlumnos,
-    crearAlumno,
     desactivarAlumno as desactivarAlumnoApi
 } from "../alumnoService"
 
@@ -9,14 +8,8 @@ function useAlumnos(token, cerrarSesion, habilitado = true) {
     const [alumnos, setAlumnos] = useState([])
     const [errorCarga, setErrorCarga] = useState("")
     const [cargandoAlumnos, setCargandoAlumnos] = useState(false)
-    const [cargando, setCargando] = useState(false)
-    const [error, setError] = useState("")
     const [cargandoDesactivacion, setCargandoDesactivacion] = useState(false)
     const [errorDesactivacion, setErrorDesactivacion] = useState("")
-
-    function informarError(mensaje) {
-        setError(mensaje)
-    }
 
     useEffect(() => {
         if (!token || !habilitado) {
@@ -69,44 +62,6 @@ function useAlumnos(token, cerrarSesion, habilitado = true) {
         })
     }
 
-    async function agregarAlumno(nombre, apellido, documentoIdentidad, fechaNacimiento) {
-        setCargando(true)
-        setError("")
-
-        try {
-            const datos = await crearAlumno(token, {
-                nombre: nombre,
-                apellido: apellido,
-                documento_identidad: documentoIdentidad,
-                fecha_nacimiento: fechaNacimiento
-            })
-
-            setAlumnos((alumnosActuales) => [
-                ...alumnosActuales,
-                datos
-            ])
-            return true
-
-        } catch (error) {
-            if (error.status === 401) {
-                cerrarSesion(true)
-                return false
-            }
-
-            if (error.status) {
-                setError(error.message || "No se pudo crear el alumno")
-                console.log("Error al crear alumno", error.status)
-                return false
-            }
-
-            setError("No se pudo conectar con el servidor")
-            return false
-
-        } finally {
-            setCargando(false)
-        }
-    }
-
     async function desactivarAlumno(id) {
         setCargandoDesactivacion(true)
         setErrorDesactivacion("")
@@ -144,14 +99,10 @@ function useAlumnos(token, cerrarSesion, habilitado = true) {
         alumnos,
         errorCarga,
         cargandoAlumnos,
-        agregarAlumno,
         incorporarAlumno,
-        cargando,
-        error,
         desactivarAlumno,
         cargandoDesactivacion,
-        errorDesactivacion,
-        informarError
+        errorDesactivacion
     }
 }
 export default useAlumnos

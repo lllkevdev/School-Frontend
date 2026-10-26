@@ -6,7 +6,6 @@ import useInvitaciones from "./hooks/useInvitaciones"
 import usePerfil from "./hooks/usePerfil"
 import Login from "./components/Login"
 import Alumnos from "./components/Alumnos"
-import FormularioAlumno from "./components/FormularioAlumno"
 import Cursos from "./components/Cursos"
 import Invitaciones from "./components/Invitaciones"
 import AcademicoAdmin from "./components/AcademicoAdmin"
@@ -82,14 +81,10 @@ function App() {
     alumnos,
     errorCarga: errorCargaAlumnos,
     cargandoAlumnos,
-    agregarAlumno,
     incorporarAlumno,
-    cargando: creandoAlumno,
-    error: errorAlumno,
     desactivarAlumno,
     cargandoDesactivacion,
-    errorDesactivacion,
-    informarError
+    errorDesactivacion
   } = useAlumnos(token, manejarSesionExpirada, esAdmin)
 
   const {
@@ -117,7 +112,7 @@ function App() {
   const [seccionActiva, setSeccionActiva] = useState("alumnos")
 
   const titulosSecciones = {
-    alumnos: "Alumnos",
+    alumnos: "Mis alumnos",
     cursos: "Cursos",
     invitaciones: "Invitaciones",
     academico: esAdmin ? "Académico" : "Mis cursos",
@@ -130,14 +125,7 @@ function App() {
       ? "perfil"
       : "academico"
 
-  const [subseccionAlumnos, setSubseccionAlumnos] = useState("listado")
-
   const [idConfirmacion, setIdConfirmacion] = useState(null)
-
-  const [nombre, setNombre] = useState("")
-  const [apellido, setApellido] = useState("")
-  const [documentoIdentidad, setDocumentoIdentidad] = useState("")
-  const [fechaNacimiento, setFechaNacimiento] = useState("")
 
   if (!token) {
     return (
@@ -214,8 +202,6 @@ function App() {
 
               <Alumnos
                 alumnos={alumnos}
-                subseccionAlumnos={subseccionAlumnos}
-                onCambiarSubseccion={setSubseccionAlumnos}
                 onPrepararDesactivacion={(id) => setIdConfirmacion(id)}
                 idConfirmacion={idConfirmacion}
                 errorDesactivacion={errorDesactivacion}
@@ -229,37 +215,6 @@ function App() {
                 }}
                 onCancelarDesactivacion={() => setIdConfirmacion(null)}
               />
-
-              {subseccionAlumnos === "crear" && (
-                <FormularioAlumno
-                  nombre={nombre}
-                  setNombre={setNombre}
-                  apellido={apellido}
-                  setApellido={setApellido}
-                  documentoIdentidad={documentoIdentidad}
-                  setDocumentoIdentidad={setDocumentoIdentidad}
-                  fechaNacimiento={fechaNacimiento}
-                  setFechaNacimiento={setFechaNacimiento}
-                  informarError={informarError}
-                  onGuardar={async () => {
-                    const creado = await agregarAlumno(
-                      nombre,
-                      apellido,
-                      documentoIdentidad,
-                      fechaNacimiento
-                    )
-
-                    if (creado) {
-                      setNombre("")
-                      setApellido("")
-                      setDocumentoIdentidad("")
-                      setFechaNacimiento("")
-                    }
-                  }}
-                  cargando={creandoAlumno}
-                  error={errorAlumno}
-                />
-              )}
             </>
           )}
 

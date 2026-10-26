@@ -1,7 +1,7 @@
 function Sidebar({ seccionActiva, onCambiarSeccion, esAdmin }) {
     const secciones = esAdmin
         ? [
-            { id: "alumnos", nombre: "Alumnos" },
+            { id: "alumnos", nombre: "Mis alumnos" },
             { id: "cursos", nombre: "Cursos" },
             { id: "invitaciones", nombre: "Invitaciones" },
             { id: "academico", nombre: "Académico" },
