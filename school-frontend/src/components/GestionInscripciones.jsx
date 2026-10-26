@@ -1,10 +1,14 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 
 import {
     formatearFecha,
     nombreAlumno,
     ordenarAlumnos
 } from "../academicoUtils"
+
+function pluralizar(cantidad, singular, plural) {
+    return `${cantidad} ${cantidad === 1 ? singular : plural}`
+}
 
 function GestionInscripciones({
     curso,
@@ -16,6 +20,8 @@ function GestionInscripciones({
     onInscribir,
     onRegistrar,
     onQuitar,
+    onImportar,
+    importando,
     onLimpiarMensajes
 }) {
     const [modo, setModo] = useState("existente")
@@ -27,6 +33,9 @@ function GestionInscripciones({
     const [pendiente, setPendiente] = useState(null)
     const [confirmarId, setConfirmarId] = useState(null)
     const [errorLocal, setErrorLocal] = useState("")
+    const [archivo, setArchivo] = useState(null)
+    const [resultadoImportacion, setResultadoImportacion] = useState(null)
+    const archivoRef = useRef(null)
 
     const alumnosPorId = new Map(
         alumnos.map((alumno) => [alumno.id, alumno])
@@ -64,7 +73,49 @@ function GestionInscripciones({
         setModo(nuevoModo)
         setPendiente(null)
         setErrorLocal("")
+        setArchivo(null)
+        setResultadoImportacion(null)
+
+        if (archivoRef.current) {
+            archivoRef.current.value = ""
+        }
+
         onLimpiarMensajes()
+    }
+
+    async function importar(evento) {
+        evento.preventDefault()
+        setErrorLocal("")
+        setResultadoImportacion(null)
+        onLimpiarMensajes()
+
+        if (!archivo) {
+            setErrorLocal("Seleccioná un archivo CSV o XLSX")
+            return
+        }
+
+        const nombreArchivo = archivo.name.toLowerCase()
+
+        if (!nombreArchivo.endsWith(".csv") && !nombreArchivo.endsWith(".xlsx")) {
+            setErrorLocal("El archivo debe ser CSV o XLSX")
+            return
+        }
+
+        if (archivo.size > 5 * 1024 * 1024) {
+            setErrorLocal("El archivo supera el tamaño máximo de 5 MB")
+            return
+        }
+
+        const resultado = await onImportar(archivo)
+
+        if (resultado) {
+            setResultadoImportacion(resultado)
+            setArchivo(null)
+
+            if (archivoRef.current) {
+                archivoRef.current.value = ""
+            }
+        }
     }
 
     async function inscribir(evento) {
@@ -204,6 +255,15 @@ function GestionInscripciones({
                     onClick={() => cambiarModo("nuevo")}
                 >
                     Alumno nuevo
+                </button>
+                <button
+                    type="button"
+                    role="tab"
+                    aria-selected={modo === "importar"}
+                    className={modo === "importar" ? "activo" : ""}
+                    onClick={() => cambiarModo("importar")}
+                >
+                    Importar planilla
                 </button>
             </div>
 
@@ -374,6 +434,142 @@ function GestionInscripciones({
                             Limpiar
                         </button>
                     </div>
+                </form>
+            )}
+
+            {modo === "importar" && (
+                <form
+                    className="academico-formulario"
+                    onSubmit={importar}
+                >
+                    <h4>Importar alumnos desde una planilla</h4>
+                    <p className="academico-ayuda">
+                        Subí un archivo CSV o XLSX de hasta 5 MB y 500
+                        filas. Las columnas obligatorias son nombre,
+                        apellido, documento y fecha_nacimiento.
+                    </p>
+
+                    <div className="academico-campos academico-campos-2">
+                        <div className="academico-campo">
+                            <label htmlFor="importar-archivo">
+                                Planilla
+                            </label>
+                            <input
+                                ref={archivoRef}
+                                id="importar-archivo"
+                                type="file"
+                                accept=".csv,.xlsx"
+                                disabled={importando}
+                                onChange={(evento) => {
+                                    setArchivo(
+                                        evento.target.files?.[0] || null
+                                    )
+                                    setErrorLocal("")
+                                    setResultadoImportacion(null)
+                                    onLimpiarMensajes()
+                                }}
+                            />
+                        </div>
+
+                        <div className="academico-campo academico-campo-accion">
+                            <button
+                                type="submit"
+                                disabled={importando || !archivo}
+                            >
+                                {importando
+                                    ? "Importando..."
+                                    : "Importar"}
+                            </button>
+                        </div>
+                    </div>
+
+                    <p className="academico-ayuda">
+                        Fechas válidas: AAAA-MM-DD o DD/MM/AAAA. Si el
+                        alumno ya existe, se reutiliza su perfil sin
+                        modificar sus datos.
+                    </p>
+
+                    {resultadoImportacion && (
+                        <div
+                            className="academico-revision"
+                            role="status"
+                        >
+                            <p className="academico-etiqueta">
+                                Resultado de la importación
+                            </p>
+                            <h4>
+                                {pluralizar(
+                                    resultadoImportacion.total_filas,
+                                    "fila procesada",
+                                    "filas procesadas"
+                                )}
+                            </h4>
+                            <p>
+                                {pluralizar(
+                                    resultadoImportacion.alumnos_creados,
+                                    "alumno creado",
+                                    "alumnos creados"
+                                )}
+                                ,{" "}
+                                {pluralizar(
+                                    resultadoImportacion.alumnos_inscriptos,
+                                    "inscripto",
+                                    "inscriptos"
+                                )}{" "}
+                                y{" "}
+                                {pluralizar(
+                                    resultadoImportacion.alumnos_omitidos,
+                                    "omitido",
+                                    "omitidos"
+                                )}
+                                .
+                            </p>
+
+                            {resultadoImportacion.errores.length > 0 && (
+                                <div className="tabla-contenedor">
+                                    <table className="tabla-alumnos">
+                                        <thead>
+                                            <tr>
+                                                <th>Fila</th>
+                                                <th>Documento</th>
+                                                <th>Motivo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {resultadoImportacion.errores.map(
+                                                (error, indice) => (
+                                                    <tr
+                                                        key={
+                                                            `${error.fila}-${indice}`
+                                                        }
+                                                    >
+                                                        <td>{error.fila}</td>
+                                                        <td>
+                                                            {error.documento
+                                                                || "-"}
+                                                        </td>
+                                                        <td>{error.mensaje}</td>
+                                                    </tr>
+                                                )
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
+                            <div className="academico-acciones">
+                                <button
+                                    type="button"
+                                    className="btn-secundario"
+                                    onClick={() =>
+                                        setResultadoImportacion(null)
+                                    }
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </form>
             )}
 

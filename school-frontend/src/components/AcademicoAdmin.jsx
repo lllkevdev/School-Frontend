@@ -47,6 +47,8 @@ function AcademicoAdmin({
         inscribirAlumno,
         registrarAlumnoConInscripcion,
         quitarInscripcion,
+        importarAlumnos,
+        importando,
         descargarCalificaciones,
         exportando,
         errorExportar
@@ -271,6 +273,8 @@ function AcademicoAdmin({
                                     onInscribir={inscribirAlumno}
                                     onRegistrar={registrarAlumnoConInscripcion}
                                     onQuitar={quitarInscripcion}
+                                    onImportar={importarAlumnos}
+                                    importando={importando}
                                     onLimpiarMensajes={limpiarMensajes}
                                 />
                             )}

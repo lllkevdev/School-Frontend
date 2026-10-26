@@ -159,6 +159,22 @@ export async function eliminarInscripcion(token, inscripcionId) {
     })
 }
 
+export async function importarAlumnos(token, cursoId, archivo) {
+    const formulario = new FormData()
+    formulario.append("curso_id", cursoId)
+    formulario.append("archivo", archivo)
+
+    const respuesta = await fetch(`${API_URL}/alumnos/importar`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`
+        },
+        body: formulario
+    })
+
+    return await procesarRespuesta(respuesta)
+}
+
 async function crearErrorRespuesta(respuesta) {
     let detalle
 

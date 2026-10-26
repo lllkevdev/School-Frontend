@@ -11,6 +11,7 @@ import {
     eliminarEvaluacion as eliminarEvaluacionApi,
     eliminarInscripcion,
     exportarCalificaciones,
+    importarAlumnos as importarAlumnosApi,
     mensajeErrorAcademico,
     obtenerCalificacionesCurso,
     obtenerEvaluacionesCurso,
@@ -52,6 +53,7 @@ function useAcademicoAdmin(
     const [mensajeOperacion, setMensajeOperacion] = useState("")
     const [exportando, setExportando] = useState(false)
     const [errorExportar, setErrorExportar] = useState("")
+    const [importando, setImportando] = useState(false)
 
     const cursoPredeterminado = cursos.find((curso) => curso.activo)
         || cursos[0]
@@ -395,6 +397,50 @@ function useAcademicoAdmin(
         }
     }
 
+    async function importarAlumnos(archivo) {
+        if (!cursoId) {
+            return null
+        }
+
+        setImportando(true)
+        limpiarMensajes()
+
+        try {
+            const resultado = await importarAlumnosApi(
+                token,
+                cursoId,
+                archivo
+            )
+
+            actualizarDatosCurso((actual) => {
+                const existentes = new Set(
+                    actual.inscripciones.map(
+                        (inscripcion) => inscripcion.id
+                    )
+                )
+                const nuevas = resultado.inscripciones.filter(
+                    (inscripcion) => !existentes.has(inscripcion.id)
+                )
+
+                return {
+                    ...actual,
+                    inscripciones: [...actual.inscripciones, ...nuevas]
+                }
+            })
+
+            resultado.alumnos.forEach((alumno) => {
+                onAlumnoRegistrado?.(alumno)
+            })
+
+            return resultado
+        } catch (error) {
+            manejarError(error, "No se pudieron importar los alumnos")
+            return null
+        } finally {
+            setImportando(false)
+        }
+    }
+
     async function descargarCalificaciones() {
         if (!cursoId) {
             return
@@ -455,6 +501,8 @@ function useAcademicoAdmin(
         inscribirAlumno,
         registrarAlumnoConInscripcion,
         quitarInscripcion,
+        importarAlumnos,
+        importando,
         descargarCalificaciones,
         exportando,
         errorExportar
