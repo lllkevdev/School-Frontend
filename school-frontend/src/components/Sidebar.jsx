@@ -1,15 +1,20 @@
-function Sidebar({ seccionActiva, onCambiarSeccion }) {
-    const secciones = [
-        { id: "inicio", nombre: "Inicio" },
-        { id: "alumnos", nombre: "Alumnos" },
-        { id: "cursos", nombre: "Cursos" },
-        { id: "invitaciones", nombre: "Invitaciones" },
-        { id: "calificaciones", nombre: "Calificaciones" },
-    ]
+function Sidebar({ seccionActiva, onCambiarSeccion, esAdmin }) {
+    const secciones = esAdmin
+        ? [
+            { id: "alumnos", nombre: "Alumnos" },
+            { id: "cursos", nombre: "Cursos" },
+            { id: "invitaciones", nombre: "Invitaciones" },
+            { id: "academico", nombre: "Académico" },
+            { id: "perfil", nombre: "Mi perfil" },
+        ]
+        : [
+            { id: "academico", nombre: "Mis cursos" },
+            { id: "perfil", nombre: "Mi perfil" },
+        ]
 
     return (
         <aside className="sidebar">
-        <h2>School Admin</h2>
+        <h2>{esAdmin ? "School Docente" : "School Alumno"}</h2>
 
         <nav>
             {secciones.map((seccion) => (

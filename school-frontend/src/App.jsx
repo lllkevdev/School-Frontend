@@ -1,14 +1,17 @@
 import { useState, useCallback, useEffect } from "react"
 
-import { obtenerPerfil } from "./authService"
 import useAlumnos from "./hooks/useAlumnos"
 import useCursos from "./hooks/useCursos"
 import useInvitaciones from "./hooks/useInvitaciones"
+import usePerfil from "./hooks/usePerfil"
 import Login from "./components/Login"
 import Alumnos from "./components/Alumnos"
 import FormularioAlumno from "./components/FormularioAlumno"
 import Cursos from "./components/Cursos"
 import Invitaciones from "./components/Invitaciones"
+import AcademicoAdmin from "./components/AcademicoAdmin"
+import AcademicoAlumno from "./components/AcademicoAlumno"
+import MiPerfil from "./components/MiPerfil"
 import Sidebar from "./components/Sidebar"
 import Header from "./components/Header"
 
@@ -23,7 +26,6 @@ function obtenerTemaInicial() {
 }
 
 function App() {
-
   const [token, setToken] = useState(
     localStorage.getItem("token")
   )
@@ -31,9 +33,6 @@ function App() {
   const [tema, setTema] = useState(obtenerTemaInicial)
 
   const [mensajeSesion, setMensajeSesion] = useState("")
-
-  const [perfil, setPerfil] = useState(null)
-  const [errorPerfil, setErrorPerfil] = useState("")
 
   useEffect(() => {
     localStorage.setItem("tema", tema)
@@ -48,11 +47,9 @@ function App() {
   const cerrarSesion = useCallback((sesionExpirada = false) => {
     localStorage.removeItem("token")
     setToken(null)
-    setPerfil(null)
-    setErrorPerfil("")
 
     if (sesionExpirada) {
-      setMensajeSesion (
+      setMensajeSesion(
         "Tu sesión expiró por seguridad. Iniciá sesión nuevamente para continuar."
       )
     } else {
@@ -64,54 +61,29 @@ function App() {
     cerrarSesion(true)
   }, [cerrarSesion])
 
-  useEffect(() => {
-    if (!token) {
-      return
-    }
+  const {
+    perfil,
+    errorPerfil,
+    guardando: guardandoPerfil,
+    errorGuardado: errorGuardadoPerfil,
+    mensajeGuardado: mensajeGuardadoPerfil,
+    actualizarPerfil,
+    fotoUrl,
+    cargandoFoto,
+    errorFoto,
+    mensajeFoto,
+    subirFoto,
+    eliminarFoto
+  } = usePerfil(token, manejarSesionExpirada)
 
-    let cancelado = false
-
-    async function cargarPerfil() {
-      setErrorPerfil("")
-
-      try {
-        const datos = await obtenerPerfil(token)
-
-        if (!cancelado) {
-          setPerfil(datos)
-        }
-      } catch (error) {
-        if (cancelado) {
-          return
-        }
-
-        if (error.status === 401) {
-          cerrarSesion(true)
-          return
-        }
-
-        setErrorPerfil(
-          error.status
-            ? error.message
-            : "No se pudo conectar con el servidor"
-        )
-      }
-    }
-
-    cargarPerfil()
-
-    return () => {
-      cancelado = true
-    }
-  }, [token, cerrarSesion])
-
-  const esAdmin = perfil?.rol === "admin"
+  const esAdmin = perfil?.usuario?.rol === "admin"
 
   const {
     alumnos,
     errorCarga: errorCargaAlumnos,
     cargandoAlumnos,
     agregarAlumno,
+    incorporarAlumno,
     cargando: creandoAlumno,
     error: errorAlumno,
     desactivarAlumno,
@@ -145,12 +117,18 @@ function App() {
   const [seccionActiva, setSeccionActiva] = useState("alumnos")
 
   const titulosSecciones = {
-    inicio: "Inicio",
     alumnos: "Alumnos",
     cursos: "Cursos",
     invitaciones: "Invitaciones",
-    calificaciones: "Calificaciones",
+    academico: esAdmin ? "Académico" : "Mis cursos",
+    perfil: "Mi perfil",
   }
+
+  const seccionActual = esAdmin
+    ? seccionActiva
+    : seccionActiva === "perfil"
+      ? "perfil"
+      : "academico"
 
   const [subseccionAlumnos, setSubseccionAlumnos] = useState("listado")
 
@@ -205,141 +183,158 @@ function App() {
     )
   }
 
-  if (!esAdmin) {
-    return (
-      <div data-tema={tema} className="login-pantalla">
-        <div className="login-tarjeta">
-          <h2>Hola, {perfil.nombre}</h2>
-          <p className="login-mensaje">
-            El panel de alumno todavía no está implementado.
-            Próximamente vas a poder consultar tus cursos y calificaciones desde acá.
-          </p>
-          <button onClick={() => cerrarSesion()}>
-            Cerrar sesión
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-return (
-  <div data-tema={tema}>
-    <div className="dashboard-layout">
-      <Sidebar
-        seccionActiva={seccionActiva}
-        onCambiarSeccion={setSeccionActiva}
-      />
-
-      <main className="dashboard-main">
-        <Header
-          titulo={titulosSecciones[seccionActiva]}
-          tema={tema}
-          onCambiarTema={() => {
-            setTema(tema === "claro" ? "oscuro" : "claro")
-          }}
-          onCerrarSesion={() => cerrarSesion()}
+  return (
+    <div data-tema={tema}>
+      <div className="dashboard-layout">
+        <Sidebar
+          seccionActiva={seccionActual}
+          onCambiarSeccion={setSeccionActiva}
+          esAdmin={esAdmin}
         />
 
-        {seccionActiva === "alumnos" && (
-          <>
-            {cargandoAlumnos && <p>Cargando alumnos...</p>}
+        <main className="dashboard-main">
+          <Header
+            titulo={titulosSecciones[seccionActual]}
+            tema={tema}
+            onCambiarTema={() => {
+              setTema(tema === "claro" ? "oscuro" : "claro")
+            }}
+            onCerrarSesion={() => cerrarSesion()}
+          />
 
-            {errorCargaAlumnos && (
-              <p className="mensaje-error" role="alert">
-                {errorCargaAlumnos}
-              </p>
-            )}
+          {seccionActual === "alumnos" && (
+            <>
+              {cargandoAlumnos && <p>Cargando alumnos...</p>}
 
-            <Alumnos
-              alumnos={alumnos}
-              subseccionAlumnos={subseccionAlumnos}
-              onCambiarSubseccion={setSubseccionAlumnos}
-              onPrepararDesactivacion={(id) => setIdConfirmacion(id)}
-              idConfirmacion={idConfirmacion}
-              errorDesactivacion={errorDesactivacion}
-              cargandoDesactivacion={cargandoDesactivacion}
-              onConfirmarDesactivacion={async (id) => {
-                const desactivado = await desactivarAlumno(id)
+              {errorCargaAlumnos && (
+                <p className="mensaje-error" role="alert">
+                  {errorCargaAlumnos}
+                </p>
+              )}
 
-                if (desactivado) {
-                  setIdConfirmacion(null)
-                }
-              }}
-              onCancelarDesactivacion={() => setIdConfirmacion(null)}
-            />
+              <Alumnos
+                alumnos={alumnos}
+                subseccionAlumnos={subseccionAlumnos}
+                onCambiarSubseccion={setSubseccionAlumnos}
+                onPrepararDesactivacion={(id) => setIdConfirmacion(id)}
+                idConfirmacion={idConfirmacion}
+                errorDesactivacion={errorDesactivacion}
+                cargandoDesactivacion={cargandoDesactivacion}
+                onConfirmarDesactivacion={async (id) => {
+                  const desactivado = await desactivarAlumno(id)
 
-            {subseccionAlumnos === "crear" && (
-              <FormularioAlumno
-                nombre={nombre}
-                setNombre={setNombre}
-                apellido={apellido}
-                setApellido={setApellido}
-                documentoIdentidad={documentoIdentidad}
-                setDocumentoIdentidad={setDocumentoIdentidad}
-                fechaNacimiento={fechaNacimiento}
-                setFechaNacimiento={setFechaNacimiento}
-                informarError={informarError}
-                onGuardar={async () => {
-                  const creado = await agregarAlumno(
-                    nombre,
-                    apellido,
-                    documentoIdentidad,
-                    fechaNacimiento
-                  )
-
-                  if (creado) {
-                    setNombre("")
-                    setApellido("")
-                    setDocumentoIdentidad("")
-                    setFechaNacimiento("")
+                  if (desactivado) {
+                    setIdConfirmacion(null)
                   }
                 }}
-                cargando={creandoAlumno}
-                error={errorAlumno}
+                onCancelarDesactivacion={() => setIdConfirmacion(null)}
               />
-            )}
-          </>
-        )}
 
-        {seccionActiva === "cursos" && (
-          <Cursos
-            cursos={cursos}
-            cargando={cargandoCursos}
-            errorCarga={errorCargaCursos}
-            onCrear={crearCurso}
-            creando={creandoCurso}
-            errorCrear={errorCrearCurso}
-          />
-        )}
+              {subseccionAlumnos === "crear" && (
+                <FormularioAlumno
+                  nombre={nombre}
+                  setNombre={setNombre}
+                  apellido={apellido}
+                  setApellido={setApellido}
+                  documentoIdentidad={documentoIdentidad}
+                  setDocumentoIdentidad={setDocumentoIdentidad}
+                  fechaNacimiento={fechaNacimiento}
+                  setFechaNacimiento={setFechaNacimiento}
+                  informarError={informarError}
+                  onGuardar={async () => {
+                    const creado = await agregarAlumno(
+                      nombre,
+                      apellido,
+                      documentoIdentidad,
+                      fechaNacimiento
+                    )
 
-        {seccionActiva === "invitaciones" && (
-          <Invitaciones
-            alumnos={alumnos}
-            cursos={cursos}
-            cargandoAlumnos={cargandoAlumnos}
-            errorAlumnos={errorCargaAlumnos}
-            invitaciones={invitaciones}
-            cargando={cargandoInvitaciones}
-            errorCarga={errorCargaInvitaciones}
-            onCrear={crearInvitacion}
-            creando={creandoInvitacion}
-            errorCrear={errorCrearInvitacion}
-            creada={invitacionCreada}
-            onRevocar={revocarInvitacion}
-            revocandoId={revocandoId}
-            errorRevocar={errorRevocar}
-          />
-        )}
+                    if (creado) {
+                      setNombre("")
+                      setApellido("")
+                      setDocumentoIdentidad("")
+                      setFechaNacimiento("")
+                    }
+                  }}
+                  cargando={creandoAlumno}
+                  error={errorAlumno}
+                />
+              )}
+            </>
+          )}
 
-        {!["alumnos", "cursos", "invitaciones"].includes(seccionActiva) && (
-          <section className="panel-informativo">
-            <h2>{titulosSecciones[seccionActiva]}</h2>
-            <p>Este módulo todavía no está conectado.</p>
-          </section>
-        )}
-    </main>
-  </div>
-</div>
-)
+          {seccionActual === "cursos" && (
+            <Cursos
+              cursos={cursos}
+              cargando={cargandoCursos}
+              errorCarga={errorCargaCursos}
+              onCrear={crearCurso}
+              creando={creandoCurso}
+              errorCrear={errorCrearCurso}
+            />
+          )}
+
+          {seccionActual === "invitaciones" && (
+            <Invitaciones
+              alumnos={alumnos}
+              cursos={cursos}
+              cargandoAlumnos={cargandoAlumnos}
+              errorAlumnos={errorCargaAlumnos}
+              invitaciones={invitaciones}
+              cargando={cargandoInvitaciones}
+              errorCarga={errorCargaInvitaciones}
+              onCrear={crearInvitacion}
+              creando={creandoInvitacion}
+              errorCrear={errorCrearInvitacion}
+              creada={invitacionCreada}
+              onRevocar={revocarInvitacion}
+              revocandoId={revocandoId}
+              errorRevocar={errorRevocar}
+            />
+          )}
+
+          {seccionActual === "academico" && esAdmin && (
+            <AcademicoAdmin
+              token={token}
+              cerrarSesion={manejarSesionExpirada}
+              cursos={cursos}
+              cargandoCursos={cargandoCursos}
+              errorCursos={errorCargaCursos}
+              alumnos={alumnos}
+              cargandoAlumnos={cargandoAlumnos}
+              errorAlumnos={errorCargaAlumnos}
+              onAlumnoRegistrado={incorporarAlumno}
+              onIrACursos={() => setSeccionActiva("cursos")}
+            />
+          )}
+
+          {seccionActual === "academico" && !esAdmin && (
+            <AcademicoAlumno
+              token={token}
+              cerrarSesion={manejarSesionExpirada}
+            />
+          )}
+
+          {seccionActual === "perfil" && (
+            <MiPerfil
+              perfil={perfil}
+              fotoUrl={fotoUrl}
+              cargandoFoto={cargandoFoto}
+              errorFoto={errorFoto}
+              mensajeFoto={mensajeFoto}
+              guardando={guardandoPerfil}
+              errorGuardado={errorGuardadoPerfil}
+              mensajeGuardado={mensajeGuardadoPerfil}
+              onActualizar={actualizarPerfil}
+              onSubirFoto={subirFoto}
+              onEliminarFoto={eliminarFoto}
+            />
+          )}
+
+        </main>
+      </div>
+    </div>
+  )
 }
+
 export default App

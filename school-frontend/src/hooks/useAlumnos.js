@@ -59,6 +59,16 @@ function useAlumnos(token, cerrarSesion, habilitado = true) {
     }, [token, cerrarSesion, habilitado])
 
 
+    function incorporarAlumno(alumno) {
+        setAlumnos((alumnosActuales) => {
+            if (alumnosActuales.some((item) => item.id === alumno.id)) {
+                return alumnosActuales
+            }
+
+            return [...alumnosActuales, alumno]
+        })
+    }
+
     async function agregarAlumno(nombre, apellido, documentoIdentidad, fechaNacimiento) {
         setCargando(true)
         setError("")
@@ -135,6 +145,7 @@ function useAlumnos(token, cerrarSesion, habilitado = true) {
         errorCarga,
         cargandoAlumnos,
         agregarAlumno,
+        incorporarAlumno,
         cargando,
         error,
         desactivarAlumno,
