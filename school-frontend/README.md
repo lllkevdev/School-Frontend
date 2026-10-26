@@ -1,16 +1,124 @@
-# React + Vite
+# School Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interfaz web para administrar cursos, alumnos, inscripciones, evaluaciones y calificaciones sobre [School API](https://github.com/lllkevdev/School-Api).
 
-Currently, two official plugins are available:
+La aplicación está pensada para dos tipos de usuario:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Docente/admin:** gestiona cursos, alumnos, invitaciones y calificaciones.
+- **Alumno:** consulta sus cursos, evaluaciones y calificaciones.
 
-## React Compiler
+## Funcionalidades
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Registro e inicio de sesión con JWT.
+- Gestión de cursos: crear, editar, archivar, reactivar y eliminar.
+- Gestión de alumnos: listar, inscribir, desactivar y registrar alumnos nuevos.
+- Importación masiva de alumnos desde archivos CSV o XLSX.
+- Gestión de evaluaciones y calificaciones por curso.
+- Exportación de calificaciones a CSV.
+- Invitaciones para vincular usuarios con perfiles de alumno.
+- Perfil de usuario con actualización de datos y foto.
+- Tema claro y oscuro.
+- Vistas adaptadas al rol del usuario.
 
-## Expanding the ESLint configuration
+## Stack
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React 19
+- Vite 8
+- JavaScript
+- Vitest
+- Testing Library
+- jsdom
+- ESLint
+
+## Requisitos
+
+- Node.js y npm.
+- School API en ejecución.
+
+## Configuración
+
+Copiar el archivo de ejemplo:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Configurar la URL del backend en `.env`:
+
+```env
+VITE_API_URL=http://localhost:8000
+```
+
+## Instalación
+
+```powershell
+npm install
+```
+
+## Desarrollo
+
+```powershell
+npm run dev
+```
+
+La aplicación queda disponible en:
+
+```text
+http://localhost:5173
+```
+
+El backend debe permitir ese origen mediante CORS.
+
+## Scripts
+
+```text
+npm run dev        Inicia Vite en modo desarrollo.
+npm run build      Genera la versión de producción en dist/.
+npm run preview    Sirve la versión compilada.
+npm run lint       Ejecuta ESLint.
+npm test           Ejecuta la suite de tests una vez.
+npm run test:watch Ejecuta Vitest en modo interactivo.
+```
+
+## Testing
+
+La suite utiliza Vitest con jsdom y Testing Library.
+
+Actualmente cubre:
+
+- Utilidades académicas.
+- Servicio de importación de alumnos.
+- Validaciones y resultados de importación en la UI.
+- Acciones de cursos: editar, archivar, reactivar y eliminar.
+- Hook académico: importación, actualización de inscripciones, errores y sesión expirada.
+
+Para ejecutar los tests:
+
+```powershell
+npm test
+```
+
+## Estructura
+
+```text
+src/
+├── components/          Componentes de la interfaz
+├── hooks/               Estado y acciones por dominio
+├── test/                Configuración de Testing Library
+├── academicoService.js  Llamadas a la API académica
+├── academicoUtils.js    Utilidades de formato y ordenamiento
+├── alumnoService.js     Llamadas a la API de alumnos
+├── apiClient.js         Cliente HTTP y manejo de errores
+├── App.jsx              Composición principal de la aplicación
+└── main.jsx             Punto de entrada de React
+```
+
+## Backend
+
+El backend se encuentra en un repositorio separado:
+
+```text
+https://github.com/lllkevdev/School-Api
+```
+
+Consultar su README para configurar PostgreSQL, variables de entorno y migraciones.
