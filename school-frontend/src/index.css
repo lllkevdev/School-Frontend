@@ -730,6 +730,13 @@ button:hover {
 }
 
 
+.acciones-curso {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
 .acciones-alumno-botones {
   display: flex;
   align-items: center;

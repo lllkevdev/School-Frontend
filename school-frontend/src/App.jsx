@@ -93,7 +93,17 @@ function App() {
     errorCarga: errorCargaCursos,
     crearCurso,
     creando: creandoCurso,
-    errorCrear: errorCrearCurso
+    errorCrear: errorCrearCurso,
+    actualizarCurso,
+    actualizando: actualizandoCurso,
+    errorActualizar: errorActualizarCurso,
+    archivarCurso,
+    reactivarCurso,
+    eliminarCurso,
+    procesandoId: procesandoIdCurso,
+    errorAccion: errorAccionCursos,
+    mensajeAccion: mensajeAccionCursos,
+    limpiarAccion: limpiarAccionCursos
   } = useCursos(token, manejarSesionExpirada, esAdmin)
 
   const {
@@ -226,6 +236,16 @@ function App() {
               onCrear={crearCurso}
               creando={creandoCurso}
               errorCrear={errorCrearCurso}
+              onActualizar={actualizarCurso}
+              actualizando={actualizandoCurso}
+              errorActualizar={errorActualizarCurso}
+              onArchivar={archivarCurso}
+              onReactivar={reactivarCurso}
+              onEliminar={eliminarCurso}
+              procesandoId={procesandoIdCurso}
+              errorAccion={errorAccionCursos}
+              mensajeAccion={mensajeAccionCursos}
+              onLimpiarAccion={limpiarAccionCursos}
             />
           )}
 

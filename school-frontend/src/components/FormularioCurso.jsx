@@ -1,12 +1,25 @@
 import { useState } from "react"
 
-function FormularioCurso({ onCrear, creando, error }) {
+function FormularioCurso({
+    curso = null,
+    onGuardar,
+    guardando = false,
+    error = "",
+    onCancelar = null
+}) {
     const anioActual = new Date().getFullYear()
+    const esEdicion = curso !== null
 
-    const [nombreMateria, setNombreMateria] = useState("")
-    const [division, setDivision] = useState("")
-    const [anioLectivo, setAnioLectivo] = useState(anioActual)
-    const [cantidadPeriodos, setCantidadPeriodos] = useState(3)
+    const [nombreMateria, setNombreMateria] = useState(
+        curso?.nombre_materia ?? ""
+    )
+    const [division, setDivision] = useState(curso?.division ?? "")
+    const [anioLectivo, setAnioLectivo] = useState(
+        curso?.anio_lectivo ?? anioActual
+    )
+    const [cantidadPeriodos, setCantidadPeriodos] = useState(
+        curso?.cantidad_periodos ?? 3
+    )
     const [errorLocal, setErrorLocal] = useState("")
 
     async function guardar(evento) {
@@ -36,14 +49,14 @@ function FormularioCurso({ onCrear, creando, error }) {
             return
         }
 
-        const creado = await onCrear({
+        const guardado = await onGuardar({
             nombre_materia: nombreMateria.trim(),
             division: division.trim(),
             anio_lectivo: anio,
             cantidad_periodos: periodos
         })
 
-        if (creado) {
+        if (guardado && !esEdicion) {
             setNombreMateria("")
             setDivision("")
             setAnioLectivo(anioActual)
@@ -53,7 +66,7 @@ function FormularioCurso({ onCrear, creando, error }) {
 
     return (
         <form className="formulario-curso" onSubmit={guardar}>
-            <h2>Crear curso</h2>
+            <h2>{esEdicion ? "Editar curso" : "Crear curso"}</h2>
 
             <p>Materia</p>
             <input
@@ -96,9 +109,24 @@ function FormularioCurso({ onCrear, creando, error }) {
             />
 
             <div className="acciones-formulario">
-                <button type="submit" disabled={creando}>
-                    {creando ? "Guardando..." : "Crear curso"}
+                <button type="submit" disabled={guardando}>
+                    {guardando
+                        ? "Guardando..."
+                        : esEdicion
+                            ? "Guardar cambios"
+                            : "Crear curso"}
                 </button>
+
+                {onCancelar && (
+                    <button
+                        type="button"
+                        className="academico-secundario"
+                        onClick={onCancelar}
+                        disabled={guardando}
+                    >
+                        Cancelar
+                    </button>
+                )}
             </div>
 
             {(errorLocal || error) && (
